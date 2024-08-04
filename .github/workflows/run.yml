@@ -29,7 +29,7 @@ jobs:
           export CONDITION="IM_THE_REASON"
           touch "$CONDITION"
           while [[ -f "$CONDITION" ]]; do
-            python3 src/main.py
+            python3 main.py
             git pull
           done
 
