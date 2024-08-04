@@ -1,4 +1,5 @@
 import os
+import asyncio
 import discord
 from discord.ext import commands
 import google.generativeai as genai
@@ -15,9 +16,10 @@ ai_chan = False
 model = False
 chat_model = False
 
-@bot.command(name="alive", help="Check command for dead or alive!")
-async def alive(ctx: commands.Context):
-    await ctx.send(content="Alive & Running.. :)")
+@bot.command(name="reboot", help="reboot the bot!")
+async def reboot(ctx: commands.Context):
+    await ctx.send(content="soon™")
+    await bot.close()
 
 @bot.command(name="ai")
 async def ai(ctx: commands.Context):
@@ -59,5 +61,11 @@ async def on_message(message: discord.Message):
 
         await message.channel.send(content=response.text)
 
+
+@bot.event
+async def on_ready():
+    await asyncio.sleep(5 * 60 * 60)
+    os.remove(os.getenv("CONDITION"))
+    await bot.close()
 
 bot.run(os.getenv("AI"))
