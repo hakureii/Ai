@@ -39,7 +39,7 @@ async def chat_mode(interaction: discord.Interaction, model: discord.Option(str,
     if not chat_model:
         system_instruction=None
         if model == "gemini-pro":
-            model = "gemini-1.0-pro"
+            model = "gemini-1.5-pro-latest"
         elif model == "gemini-flash":
             model = "gemini-1.5-flash"
             system_instruction = None
