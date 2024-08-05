@@ -39,7 +39,7 @@ async def chat_mode(interaction: discord.Interaction, model: discord.Option(str,
     if not chat_model:
         system_instruction=None
         if model == "gemini-pro":
-            model = "gemini-1.5-pro-latest"
+            model = "gemini-1.0-pro"
         elif model == "gemini-flash":
             model = "gemini-1.5-flash"
             system_instruction = None
@@ -80,7 +80,7 @@ async def on_message(message: discord.Message):
             if message.content.lower() == "bye":
                 ai_chan = False
                 chat_model = False
-            await message.channel.send(content=response)
+            await message.reply(content=response)
 
 
 @bot.event
