@@ -73,7 +73,7 @@ async def on_message(message: discord.Message):
                         image_data = io.BytesIO(image_response.content)
                         image = Image.open(image_data)
                         prompt.append(image)
-            response = chat_model.send_message(author_name + message.content.lower())
+            response = chat_model.send_message(prompt)
             print(response.prompt_feedback)
             if message.content.lower() == "bye":
                 ai_chan = False
