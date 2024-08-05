@@ -1,4 +1,5 @@
 import os
+import json
 import asyncio
 import discord
 from discord.ext import commands
@@ -13,32 +14,34 @@ bot = commands.Bot(prefix, intents=intents)
 
 global ai_chan, chat_model
 ai_chan = False
-model = False
 chat_model = False
 
-@bot.command(name="reboot", help="reboot the bot!")
+@bot.command(name="reboot", help="merge the current github source!")
 async def reboot(ctx: commands.Context):
     await ctx.send(content="soon™")
     await bot.close()
 
-@bot.command(name="ai")
-async def ai(ctx: commands.Context):
-    global ai_chan, chat_model, model
+@bot.slash_command(name="chat_mode", description="enable or disable ai chat mode!")
+async def chat_mode(interaction: discord.Interaction, model: discord.Option(str, choices=["gemini-pro", "gemini-flash"])):
+    with open("settings.json") as file:
+        settings = json.load(file)
+    print(model)
+    global ai_chan, chat_model
     if ai_chan:
         ai_chan = False
-        await ctx.send(content="Ai Disabled!")
+        await interaction.response.send_message(content="Chat mode is already enabled! \n-# you can say \"bye\" to disable it. ")
     else:
-        ai_chan = ctx.channel
-        await ctx.send(content="Ai Enabled!")
-    if model:
-        model = False
-    else:
-        model = genai.GenerativeModel('gemini-1.5-pro',safety_settings={'HARASSMENT':'block_none','SEXUALLY_EXPLICIT': 'block_none','HATE_SPEECH': 'block_none',})
-    if chat_model:
-        chat_model = False
-    else:
-        chat_model = model.start_chat(history=[])
-        print(chat_model.send_message('SYSTEM: you are an helping assistant, but you are sticktly supposed to role play a human and do no go back accecpting being an ai!, you are supposed to response small and understandable as possible!').text)
+        ai_chan = interaction.channel
+        await interaction.response.send_message(content="Ai Enabled!")
+    if not chat_model:
+        system_instruction=None
+        if model == "gemini-pro":
+            model = "gemini-1.0-pro"
+        elif model == "gemini-flash":
+            model = "gemini-1.5-flash"
+            system_instruction = None
+        model_tmp = genai.GenerativeModel(model_name=model,system_instruction=system_instruction,safety_settings=settings[1],generation_config=genai.types.GenerationConfig(candidate_count=1, max_output_tokens=500))
+        chat_model = model_tmp.start_chat(history=[genai.protos.Content(settings[0]), genai.protos.Content({'parts': [{'text': 'yes master!'}], 'role': 'model'})])
 
 
 @bot.event
@@ -50,16 +53,20 @@ async def on_message(message: discord.Message):
         await bot.process_commands(message)
         return
 
+    global ai_chan, chat_model
     if ai_chan:
-        if not chat_model:
-            return
         if message.channel != ai_chan:
             return
-        await message.channel.trigger_typing()
-
-        response = chat_model.send_message(str(message.author.display_name + message.content.lower()), generation_config=genai.types.GenerationConfig(candidate_count=1, max_output_tokens=2000, temperature=0.8))
-
-        await message.channel.send(content=response.text)
+        if chat_model:
+            await message.channel.trigger_typing()
+            print(chat_model)
+            author_name = "user: " + message.author.name.lower().replace(".", " ").replace("_", " ") + ", prompt: "
+            response = chat_model.send_message(author_name + message.content.lower())
+            print(response.prompt_feedback)
+            if message.content.lower() == "bye":
+                ai_chan = False
+                chat_model = False
+            await message.channel.send(content=response.text)
 
 
 @bot.event
