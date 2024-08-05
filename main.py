@@ -28,7 +28,6 @@ async def reboot(ctx: commands.Context):
 async def chat_mode(interaction: discord.Interaction, model: discord.Option(str, choices=["gemini-pro", "gemini-flash"])):
     with open("settings.json") as file:
         settings = json.load(file)
-    print(model)
     global ai_chan, chat_model
     if ai_chan:
         ai_chan = False
@@ -62,7 +61,6 @@ async def on_message(message: discord.Message):
             return
         if chat_model:
             await message.channel.trigger_typing()
-            print(chat_model)
             author_name = "user: " + message.author.name.lower().replace(".", " ").replace("_", " ") + ", prompt: "
             prompt = list()
             prompt.append(author_name + message.content.lower())
