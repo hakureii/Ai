@@ -1,7 +1,10 @@
 import os
+import io
 import json
 import asyncio
 import discord
+import requests
+from PIL import Image
 from discord.ext import commands
 import google.generativeai as genai
 
@@ -61,6 +64,15 @@ async def on_message(message: discord.Message):
             await message.channel.trigger_typing()
             print(chat_model)
             author_name = "user: " + message.author.name.lower().replace(".", " ").replace("_", " ") + ", prompt: "
+            prompt = list()
+            prompt.append(author_name + message.content.lower())
+            if message.attachments:
+                for attachment in message.attachments:
+                    if attachment.content_type.startswith("image/"):
+                        image_response = requests.get(attachment.url)
+                        image_data = io.BytesIO(image_response.content)
+                        image = Image.open(image_data)
+                        prompt.append(image)
             response = chat_model.send_message(author_name + message.content.lower())
             print(response.prompt_feedback)
             if message.content.lower() == "bye":
