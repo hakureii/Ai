@@ -73,12 +73,14 @@ async def on_message(message: discord.Message):
                         image_data = io.BytesIO(image_response.content)
                         image = Image.open(image_data)
                         prompt.append(image)
-            response = chat_model.send_message(prompt)
-            print(response.prompt_feedback)
+            try:
+                response = chat_model.send_message(prompt).text
+            except Exception as e:
+                response = "-# " + e.__class__.__name__
             if message.content.lower() == "bye":
                 ai_chan = False
                 chat_model = False
-            await message.channel.send(content=response.text)
+            await message.channel.send(content=response)
 
 
 @bot.event
